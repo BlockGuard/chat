@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=66.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project]
+name = "chat"
+version = "0.1.0"
+authors = [
+    { name = "NxtaSunstrike" },
+    { name = "Alim Abrekov", email = "chessinmind17@yandex.ru" },
+]
+description = "Chat implementation using Model-Driven-Design patterns, CQRS and Hexagonal Architecture."
+requires-python = ">=3.12"
+dependencies = [
+    "bazario[dishka]>=0.4.1",
+    "mypy>=1.14.1",
+]
