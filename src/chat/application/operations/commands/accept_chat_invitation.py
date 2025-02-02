@@ -69,7 +69,7 @@ class AcceptChatInvitationHandler(RequestHandler[AcceptChatInvitation, None]):
                 error_type=ErrorType.NOT_FOUND, message="Chat not found"
             )
 
-        member = chat.join_member(
+        chat.join_member(
             member_id=invitation.recipient_id,
             current_date=self._time_provider.provide_current(),
             role=MemberRole.MEMBER,
@@ -79,8 +79,6 @@ class AcceptChatInvitationHandler(RequestHandler[AcceptChatInvitation, None]):
             status=InvitationStatus.ACCEPTED,
             current_date=self._time_provider.provide_current(),
         )
-
-        self._member_repository.add(member)
 
     async def _ensure_user_is_not_member_of_chat(
         self, chat_id: ChatId, user_id: UserId
