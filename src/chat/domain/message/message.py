@@ -1,12 +1,12 @@
 from datetime import datetime
 
 from chat.domain.chat.chat_id import ChatId
-from chat.domain.member.member_id import MemberId
 from chat.domain.message.events import MessageContentEdited
 from chat.domain.message.message_id import MessageId
 from chat.domain.shared.entity import Entity
 from chat.domain.shared.events import DomainEventAdder
 from chat.domain.shared.unit_of_work import UnitOfWork
+from chat.domain.shared.user_id import UserId
 
 
 class Message(Entity[MessageId]):
@@ -16,7 +16,7 @@ class Message(Entity[MessageId]):
         event_adder: DomainEventAdder,
         unit_of_work: UnitOfWork,
         *,
-        owner_id: MemberId,
+        owner_id: UserId,
         chat_id: ChatId,
         content: str,
         created_at: datetime,
@@ -46,7 +46,7 @@ class Message(Entity[MessageId]):
         self.mark_dirty()
 
     @property
-    def owner_id(self) -> MemberId:
+    def owner_id(self) -> UserId:
         return self._owner_id
 
     @property

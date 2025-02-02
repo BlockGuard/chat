@@ -1,11 +1,13 @@
 from abc import ABC, abstractmethod
 
 from chat.domain.chat.chat import Chat
-from chat.domain.chat.owner_id import OwnerId
+from chat.domain.shared.user_id import UserId
 
 
 class ChatFactory(ABC):
     @abstractmethod
-    def create(
-        self, owner_id: OwnerId, title: str, description: str
+    async def create_public_chat(
+        self, owner_id: UserId, title: str, description: str
     ) -> Chat: ...
+    @abstractmethod
+    async def create_private_chat(self, owner_id: UserId) -> Chat: ...
