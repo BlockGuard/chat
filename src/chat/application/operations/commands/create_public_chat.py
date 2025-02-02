@@ -38,13 +38,12 @@ class CreatePublicChatHandler(RequestHandler[CreatePublicChat, ChatId]):
             title=request.title,
             description=request.description,
         )
-        owner = chat.join_member(
+        chat.join_member(
             member_id=request.owner_id,
             current_date=self._time_provider.provide_current(),
             role=MemberRole.OWNER,
         )
 
         self._chat_repository.add(chat)
-        self._member_repository.add(owner)
 
         return chat.entity_id

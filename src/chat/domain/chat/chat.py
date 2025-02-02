@@ -69,7 +69,7 @@ class Chat(Entity[ChatId]):
 
     def join_member(
         self, member_id: UserId, current_date: datetime, role: MemberRole
-    ) -> Member:
+    ) -> None:
         member = Member(
             entity_id=member_id,
             event_adder=self._event_adder,
@@ -86,7 +86,7 @@ class Chat(Entity[ChatId]):
                 event_date=current_date,
             )
         )
-        return member
+        member.mark_new()
 
     @property
     def created_at(self) -> datetime:

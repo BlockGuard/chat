@@ -35,20 +35,19 @@ class CreatePrivateChatHandler(
 
     async def handle(self, request: CreatePrivateChat) -> ChatId:
         chat = await self._chat_factory.create_private_chat(request.owner_id)
-        members = [
-            chat.join_member(
-                member_id=request.owner_id,
-                current_date=self._time_provider.provide_current(),
-                role=MemberRole.OWNER,
-            ),
-            chat.join_member(
-                member_id=request.invited_user_id,
-                current_date=self._time_provider.provide_current(),
-                role=MemberRole.OWNER,
-            ),
-        ]
+
+        chat.join_member(
+            member_id=request.owner_id,
+            current_date=self._time_provider.provide_current(),
+            role=MemberRole.OWNER,
+        )
+
+        chat.join_member(
+            member_id=request.invited_user_id,
+            current_date=self._time_provider.provide_current(),
+            role=MemberRole.OWNER,
+        )
 
         self._chat_repository.add(chat)
-        self._member_repository.add_many(members)
 
         return chat.entity_id
