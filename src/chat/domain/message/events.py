@@ -7,23 +7,23 @@ from chat.domain.shared.user_id import UserId
 
 
 @dataclass(frozen=True)
-class MessageCreated(DomainEvent):
-    message_id: MessageId
-    owner_id: UserId
+class MessageSent(DomainEvent):
     chat_id: ChatId
+    message_id: MessageId
+    sender_id: UserId
     content: str
 
 
 @dataclass(frozen=True)
-class MessageContentEdited(DomainEvent):
-    message_id: MessageId
-    owner_id: UserId
+class MessageEdited(DomainEvent):
     chat_id: ChatId
+    message_id: MessageId
+    sender_id: UserId
     content: str
 
 
 @dataclass(frozen=True)
 class MessageDeleted(DomainEvent):
-    message_id: MessageId
-    owner_id: UserId
     chat_id: ChatId
+    message_id: MessageId
+    sender_id: UserId
