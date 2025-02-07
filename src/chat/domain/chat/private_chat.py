@@ -38,7 +38,11 @@ class PrivateChat(BaseChat):
         self, member_id: UserId, current_date: datetime
     ) -> None:
         self._ensure_only_two_members()
-        self._join_chat(member_id, current_date, MemberRole.OWNER)
+        self._join_chat(
+            member_id=member_id,
+            current_date=current_date,
+            role=MemberRole.OWNER,
+        )
 
     def send_message_to_private_chat(
         self,
@@ -47,17 +51,30 @@ class PrivateChat(BaseChat):
         content: str,
         current_date: datetime,
     ) -> Message:
-        return self._send_message(sender_id, message_id, content, current_date)
+        return self._send_message(
+            sender_id=sender_id,
+            message_id=message_id,
+            content=content,
+            current_date=current_date,
+        )
 
     def mute_member(
         self, member_id: UserId, muter_by_id: UserId, current_date: datetime
     ) -> None:
         self._get_validated_member(muter_by_id)
-        self._change_member_status(member_id, MemberStatus.MUTED, current_date)
+        self._change_member_status(
+            member_id=member_id,
+            status=MemberStatus.MUTED,
+            current_date=current_date,
+        )
 
     def unmute_member(self, member_id: UserId, current_date: datetime) -> None:
         self._get_validated_member(member_id)
-        self._change_member_status(member_id, MemberStatus.ACTIVE, current_date)
+        self._change_member_status(
+            member_id=member_id,
+            status=MemberStatus.ACTIVE,
+            current_date=current_date,
+        )
 
     def delete_private_chat(
         self, deleter_id: UserId, current_date: datetime

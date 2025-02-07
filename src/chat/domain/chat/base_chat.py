@@ -63,7 +63,9 @@ class BaseChat(Entity[ChatId]):
     ) -> Message:
         member = self._get_validated_member(sender_id)
         self._ensure_member_not_muted(member)
-        message = member.send_message(message_id, content, current_date)
+        message = member.send_message(
+            message_id=message_id, content=content, current_date=current_date
+        )
         message.mark_new()
         return message
 
@@ -109,18 +111,22 @@ class BaseChat(Entity[ChatId]):
 
     def _check_member_already_in_chat(self, member_id: UserId) -> None:
         if self._find_member(member_id):
-            raise MemberAlreadyInChatError(self._entity_id, member_id)
+            raise MemberAlreadyInChatError(
+                chat_id=self._entity_id, member_id=member_id
+            )
 
     def _get_validated_member(self, member_id: UserId) -> Member:
         member = self._find_member(member_id)
         if not member:
-            raise MemberNotInChatError(self._entity_id, member_id)
+            raise MemberNotInChatError(
+                chat_id=self._entity_id, member_id=member_id
+            )
         return member
 
     def _ensure_member_not_muted(self, member: Member) -> None:
         if member.status == MemberStatus.MUTED:
             raise MutedMemberCantSendMessageError(
-                self._entity_id, member.entity_id
+                chat_id=self._entity_id, member_id=member.entity_id
             )
 
     def _create_member(

@@ -34,7 +34,9 @@ class Member(Entity[UserId]):
     def send_message(
         self, message_id: MessageId, content: str, current_date: datetime
     ) -> Message:
-        message = self._create_message(message_id, content, current_date)
+        message = self._create_message(
+            message_id=message_id, content=content, current_date=current_date
+        )
         return message
 
     def _create_message(

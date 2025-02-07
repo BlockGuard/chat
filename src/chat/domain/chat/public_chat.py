@@ -52,8 +52,14 @@ class PublicChat(BaseChat):
         current_date: datetime,
         editor_id: UserId,
     ) -> None:
-        self.edit_description(description, current_date, editor_id)
-        self.edit_title(title, current_date, editor_id)
+        self.edit_description(
+            description=description,
+            current_date=current_date,
+            editor_id=editor_id,
+        )
+        self.edit_title(
+            title=title, current_date=current_date, editor_id=editor_id
+        )
 
     def edit_description(
         self, description: str, current_date: datetime, editor_id: UserId
@@ -138,20 +144,28 @@ class PublicChat(BaseChat):
     ) -> None:
         changed_by = self._get_validated_member(changed_by_id)
         self._ensure_member_have_permission(changed_by)
-        self._change_member_status(member_id, status, current_date)
+        self._change_member_status(
+            member_id=member_id, status=status, current_date=current_date
+        )
 
     def mute_public_chat_member(
         self, member_id: UserId, current_date: datetime, muted_by_id: UserId
     ) -> None:
         self.change_member_status(
-            member_id, MemberStatus.MUTED, muted_by_id, current_date
+            member_id=member_id,
+            status=MemberStatus.MUTED,
+            changed_by_id=muted_by_id,
+            current_date=current_date,
         )
 
     def unmute_public_chat_member(
         self, member_id: UserId, current_date: datetime, unmuted_by_id: UserId
     ) -> None:
         self.change_member_status(
-            member_id, MemberStatus.ACTIVE, unmuted_by_id, current_date
+            member_id=member_id,
+            status=MemberStatus.ACTIVE,
+            changed_by_id=unmuted_by_id,
+            current_date=current_date,
         )
 
     def delete_public_chat(
@@ -165,7 +179,9 @@ class PublicChat(BaseChat):
         members_list = list(self._members)
         new_owner = members_list[secrets.randbelow(len(members_list))]
         self._change_member_role(
-            new_owner.entity_id, MemberRole.OWNER, current_date
+            member_id=new_owner.entity_id,
+            role=MemberRole.OWNER,
+            current_date=current_date,
         )
 
     def _ensure_member_have_permission(self, member: Member) -> None:
