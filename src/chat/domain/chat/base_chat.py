@@ -41,7 +41,9 @@ class BaseChat(Entity[ChatId]):
         self, member_id: UserId, current_date: datetime, role: MemberRole
     ) -> None:
         self._check_member_already_in_chat(member_id)
-        member = self._create_member(member_id, role, current_date)
+        member = self._create_member(
+            member_id=member_id, role=role, current_date=current_date
+        )
         member.mark_new()
         self._members.add(member)
         member.add_event(
@@ -64,13 +66,18 @@ class BaseChat(Entity[ChatId]):
         member = self._get_validated_member(sender_id)
         self._ensure_member_not_muted(member)
         message = member.send_message(
-            message_id=message_id, content=content, current_date=current_date
+            message_id=message_id,
+            content=content,
+            current_date=current_date,
         )
         message.mark_new()
         return message
 
     def _change_member_status(
-        self, member_id: UserId, status: MemberStatus, current_date: datetime
+        self,
+        member_id: UserId,
+        status: MemberStatus,
+        current_date: datetime,
     ) -> None:
         member = self._get_validated_member(member_id)
         member.change_status(status, current_date)

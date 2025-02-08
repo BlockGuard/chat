@@ -3,7 +3,9 @@ from datetime import datetime
 from chat.domain.chat.base_chat import BaseChat
 from chat.domain.chat.chat_id import ChatId
 from chat.domain.chat.chat_types import ChatType
-from chat.domain.chat.exceptions import OnlyTwoMembersAllowedForPrivateChatError
+from chat.domain.chat.exceptions import (
+    OnlyTwoMembersAllowedForPrivateChatError,
+)
 from chat.domain.member.member import Member
 from chat.domain.member.roles import MemberRole
 from chat.domain.member.statuses import MemberStatus
@@ -58,22 +60,16 @@ class PrivateChat(BaseChat):
             current_date=current_date,
         )
 
-    def mute_member(
-        self, member_id: UserId, muter_by_id: UserId, current_date: datetime
+    def change_private_chat_member_status(
+        self,
+        member_id: UserId,
+        status: MemberStatus,
+        current_date: datetime,
+        changed_by_id: UserId,
     ) -> None:
-        self._get_validated_member(muter_by_id)
+        self._get_validated_member(changed_by_id)
         self._change_member_status(
-            member_id=member_id,
-            status=MemberStatus.MUTED,
-            current_date=current_date,
-        )
-
-    def unmute_member(self, member_id: UserId, current_date: datetime) -> None:
-        self._get_validated_member(member_id)
-        self._change_member_status(
-            member_id=member_id,
-            status=MemberStatus.ACTIVE,
-            current_date=current_date,
+            member_id=member_id, status=status, current_date=current_date
         )
 
     def delete_private_chat(
@@ -84,4 +80,6 @@ class PrivateChat(BaseChat):
 
     def _ensure_only_two_members(self) -> None:
         if len(self._members) == 2:
-            raise OnlyTwoMembersAllowedForPrivateChatError(self._entity_id)
+            raise OnlyTwoMembersAllowedForPrivateChatError(
+                chat_id=self._entity_id
+            )
