@@ -6,7 +6,7 @@ from chat.domain.chat.public_chat import PublicChat
 from chat.domain.shared.user_id import UserId
 
 
-class PrivateRepository(ABC):
+class PrivateChatRepository(ABC):
     @abstractmethod
     def add(self, chat: PrivateChat) -> None: ...
     @abstractmethod
@@ -17,7 +17,7 @@ class PrivateRepository(ABC):
     async def with_owner_id(self, owner_id: UserId) -> list[PrivateChat]: ...
 
 
-class PublicRepository(ABC):
+class PublicChatRepository(ABC):
     @abstractmethod
     def add(self, chat: PublicChat) -> None: ...
     @abstractmethod

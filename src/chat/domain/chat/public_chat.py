@@ -13,6 +13,8 @@ from chat.domain.member.exceptions import MemberHavenotPermissionError
 from chat.domain.member.member import Member
 from chat.domain.member.roles import MemberRole
 from chat.domain.member.statuses import MemberStatus
+from chat.domain.message.message import Message
+from chat.domain.message.message_id import MessageId
 from chat.domain.shared.events import DomainEventAdder
 from chat.domain.shared.unit_of_work import UnitOfWork
 from chat.domain.shared.user_id import UserId
@@ -46,7 +48,10 @@ class PublicChat(BaseChat):
         self._updated_at = updated_at
 
     def edit_description(
-        self, description: str, current_date: datetime, editor_id: UserId
+        self,
+        description: str | None,
+        current_date: datetime,
+        editor_id: UserId,
     ) -> None:
         editor = self._get_validated_member(editor_id)
         self._ensure_member_have_permission(editor)
@@ -63,7 +68,7 @@ class PublicChat(BaseChat):
         self.mark_dirty()
 
     def edit_title(
-        self, title: str, current_date: datetime, editor_id: UserId
+        self, title: str | None, current_date: datetime, editor_id: UserId
     ) -> None:
         editor = self._get_validated_member(editor_id)
         self._ensure_member_have_permission(editor)
@@ -84,15 +89,16 @@ class PublicChat(BaseChat):
     ) -> None:
         self._join_chat(member_id, current_date, role)
 
-    def leave_public_chat(
-        self, member_id: UserId, current_date: datetime
-    ) -> None:
-        member = self._get_validated_member(member_id)
-        if member.role == MemberRole.OWNER:
-            self._transfer_ownership(current_date)
+    def leave_public_chat(self, member_id: UserId, current_date: datetime) -> None:
         if len(self.members) == 1:
             self._delete_chat(current_date)
             return
+
+        member = self._get_validated_member(member_id)
+
+        if member.role == MemberRole.OWNER:
+            self._transfer_ownership(current_date)
+
         self._members.remove(member)
         member.mark_deleted()
         member.add_event(
@@ -135,12 +141,24 @@ class PublicChat(BaseChat):
             member_id=member_id, status=status, current_date=current_date
         )
 
-    def delete_public_chat(
-        self, member_id: UserId, current_date: datetime
-    ) -> None:
+    def delete_public_chat(self, member_id: UserId, current_date: datetime) -> None:
         member = self._get_validated_member(member_id)
         self._ensure_member_have_permission(member)
         self._delete_chat(current_date)
+
+    def send_message_to_public_chat(
+        self,
+        sender_id: UserId,
+        message_id: MessageId,
+        content: str,
+        current_date: datetime,
+    ) -> Message:
+        return self._send_message(
+            sender_id=sender_id,
+            message_id=message_id,
+            content=content,
+            current_date=current_date,
+        )
 
     def _transfer_ownership(self, current_date: datetime) -> None:
         members_list = list(self._members)
@@ -153,9 +171,7 @@ class PublicChat(BaseChat):
 
     def _ensure_member_have_permission(self, member: Member) -> None:
         if member.role == MemberRole.MEMBER:
-            raise MemberHavenotPermissionError(
-                self._entity_id, member.entity_id
-            )
+            raise MemberHavenotPermissionError(self._entity_id, member.entity_id)
 
     @property
     def description(self) -> str | None:

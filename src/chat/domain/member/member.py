@@ -1,7 +1,10 @@
 from datetime import datetime
 
 from chat.domain.chat.chat_id import ChatId
-from chat.domain.member.events import MemberRoleChanged, MemberStatusChanged
+from chat.domain.member.events import (
+    MemberRoleChanged,
+    MemberStatusChanged,
+)
 from chat.domain.member.roles import MemberRole
 from chat.domain.member.statuses import MemberStatus
 from chat.domain.message.message import Message
@@ -35,7 +38,9 @@ class Member(Entity[UserId]):
         self, message_id: MessageId, content: str, current_date: datetime
     ) -> Message:
         message = self._create_message(
-            message_id=message_id, content=content, current_date=current_date
+            message_id=message_id,
+            content=content,
+            current_date=current_date,
         )
         return message
 
@@ -63,9 +68,7 @@ class Member(Entity[UserId]):
             )
         )
 
-    def change_status(
-        self, status: MemberStatus, current_date: datetime
-    ) -> None:
+    def change_status(self, status: MemberStatus, current_date: datetime) -> None:
         self._status = status
         self.add_event(
             MemberStatusChanged(

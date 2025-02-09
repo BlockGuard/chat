@@ -70,7 +70,6 @@ class BaseChat(Entity[ChatId]):
             content=content,
             current_date=current_date,
         )
-        message.mark_new()
         return message
 
     def _change_member_status(
@@ -108,11 +107,7 @@ class BaseChat(Entity[ChatId]):
 
     def _find_member(self, member_id: UserId) -> Member | None:
         return next(
-            (
-                member
-                for member in self._members
-                if member.entity_id == member_id
-            ),
+            (member for member in self._members if member.entity_id == member_id),
             None,
         )
 
@@ -125,9 +120,7 @@ class BaseChat(Entity[ChatId]):
     def _get_validated_member(self, member_id: UserId) -> Member:
         member = self._find_member(member_id)
         if not member:
-            raise MemberNotInChatError(
-                chat_id=self._entity_id, member_id=member_id
-            )
+            raise MemberNotInChatError(chat_id=self._entity_id, member_id=member_id)
         return member
 
     def _ensure_member_not_muted(self, member: Member) -> None:

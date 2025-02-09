@@ -8,7 +8,10 @@ from chat.domain.shared.user_id import UserId
 class ChatFactory(ABC):
     @abstractmethod
     async def create_public_chat(
-        self, owner_id: UserId, title: str, description: str
+        self,
+        owner_id: UserId,
+        title: str | None = None,
+        description: str | None = None,
     ) -> PublicChat: ...
     @abstractmethod
     async def create_private_chat(self, owner_id: UserId) -> PrivateChat: ...
