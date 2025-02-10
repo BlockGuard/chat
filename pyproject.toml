@@ -18,6 +18,8 @@ authors = [
 description = "Chat implementation using Model-Driven-Design patterns, CQRS and Hexagonal Architecture."
 requires-python = ">=3.12"
 dependencies = [
+    "aio-pika>=9.5.4",
     "bazario[dishka]>=0.4.1",
+    "faststream[aio-pika]>=0.5.34",
     "mypy>=1.14.1",
 ]
