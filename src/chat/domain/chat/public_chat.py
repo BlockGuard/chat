@@ -3,6 +3,7 @@ from datetime import datetime
 
 from chat.domain.chat.base_chat import BaseChat
 from chat.domain.chat.chat_id import ChatId
+from chat.domain.chat.chat_types import ChatType
 from chat.domain.chat.events import (
     PublicChatDescriptionEdited,
     PublicChatTitleEdited,
@@ -27,6 +28,7 @@ class PublicChat(BaseChat):
         unit_of_work: UnitOfWork,
         *,
         created_at: datetime,
+        chat_type: ChatType = ChatType.PUBLIC,
         members: set[Member] | None = None,
         title: str | None = None,
         description: str | None = None,
@@ -37,6 +39,7 @@ class PublicChat(BaseChat):
             event_adder=event_adder,
             unit_of_work=unit_of_work,
             created_at=created_at,
+            chat_type=chat_type,
             members=members,
         )
 
@@ -57,6 +60,7 @@ class PublicChat(BaseChat):
         self.add_event(
             PublicChatDescriptionEdited(
                 chat_id=self.entity_id,
+                chat_type=self._chat_type,
                 description=self._description,
                 event_date=current_date,
             )
@@ -73,6 +77,7 @@ class PublicChat(BaseChat):
         self.add_event(
             PublicChatTitleEdited(
                 chat_id=self.entity_id,
+                chat_type=self._chat_type,
                 title=self._title,
                 event_date=current_date,
             )
