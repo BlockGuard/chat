@@ -1,39 +1,28 @@
 from dataclasses import dataclass
 
 from chat.domain.chat.chat_id import ChatId
-from chat.domain.chat.chat_types import ChatType
 from chat.domain.shared.events import DomainEvent
 
 
 @dataclass(frozen=True)
 class PublicChatCreated(DomainEvent):
     chat_id: ChatId
-    chat_type: ChatType
     title: str | None
     description: str | None
 
 
 @dataclass(frozen=True)
-class PrivateChatCreated(DomainEvent):
-    chat_id: ChatId
-    chat_type: ChatType
-
-
-@dataclass(frozen=True)
 class PublicChatDescriptionEdited(DomainEvent):
     chat_id: ChatId
-    chat_type: ChatType
     description: str | None
 
 
 @dataclass(frozen=True)
 class PublicChatTitleEdited(DomainEvent):
     chat_id: ChatId
-    chat_type: ChatType
     title: str | None
 
 
 @dataclass(frozen=True)
-class ChatDeleted(DomainEvent):
+class PublicChatDeleted(DomainEvent):
     chat_id: ChatId
-    chat_type: ChatType

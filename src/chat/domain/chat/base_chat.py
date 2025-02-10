@@ -1,8 +1,7 @@
 from datetime import datetime
 
 from chat.domain.chat.chat_id import ChatId
-from chat.domain.chat.chat_types import ChatType
-from chat.domain.chat.events import ChatDeleted
+from chat.domain.chat.events import PublicChatDeleted
 from chat.domain.member.events import MemberJoinedChat
 from chat.domain.member.exceptions import (
     MemberAlreadyInChatError,
@@ -28,13 +27,11 @@ class BaseChat(Entity[ChatId]):
         unit_of_work: UnitOfWork,
         *,
         created_at: datetime,
-        chat_type: ChatType,
         members: set[Member] | None = None,
     ) -> None:
         super().__init__(entity_id, event_adder, unit_of_work)
 
         self._created_at = created_at
-        self._chat_type = chat_type
         self._members = members or set()
 
     def _join_chat(
@@ -97,9 +94,8 @@ class BaseChat(Entity[ChatId]):
             member.mark_deleted()
 
         self.add_event(
-            ChatDeleted(
+            PublicChatDeleted(
                 chat_id=self._entity_id,
-                chat_type=self._chat_type,
                 event_date=current_date,
             )
         )
@@ -145,10 +141,6 @@ class BaseChat(Entity[ChatId]):
     @property
     def created_at(self) -> datetime:
         return self._created_at
-
-    @property
-    def chat_type(self) -> ChatType:
-        return self._chat_type
 
     @property
     def members(self) -> set[Member]:
