@@ -6,24 +6,30 @@ from chat.domain.shared.user_id import UserId
 class MemberAlreadyInChatError(DomainError):
     def __init__(self, chat_id: ChatId, member_id: UserId) -> None:
         DomainError.__init__(
-            self, f"Member {member_id} already in chat {chat_id}"
+            self=self,
+            message=f"Member {member_id} already in chat {chat_id}",
         )
 
 
 class MemberNotInChatError(DomainError):
     def __init__(self, chat_id: ChatId, member_id: UserId) -> None:
-        DomainError.__init__(self, f"Member {member_id} not in chat {chat_id}")
+        DomainError.__init__(
+            self=self,
+            message=f"Member {member_id} not in chat {chat_id}",
+        )
 
 
 class MutedMemberCantSendMessageError(DomainError):
     def __init__(self, chat_id: ChatId, member_id: UserId) -> None:
         DomainError.__init__(
-            self, f"Member {member_id} in chat {chat_id} is muted"
+            self=self,
+            message=f"Member {member_id} in chat {chat_id} is muted",
         )
 
 
 class MemberHavenotPermissionError(DomainError):
     def __init__(self, chat_id: ChatId, member_id: UserId) -> None:
         DomainError.__init__(
-            self, f"Member {member_id} in chat {chat_id} have no permission"
+            self=self,
+            message=f"Member {member_id} have no permission",
         )

@@ -10,8 +10,10 @@ class ChatFactory(ABC):
     async def create_public_chat(
         self,
         owner_id: UserId,
-        title: str | None = None,
-        description: str | None = None,
+        title: str | None,
+        description: str | None,
     ) -> PublicChat: ...
     @abstractmethod
-    async def create_private_chat(self, owner_id: UserId) -> PrivateChat: ...
+    async def create_private_chat(
+        self, owner_id: UserId
+    ) -> PrivateChat: ...

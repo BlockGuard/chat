@@ -1,11 +1,10 @@
+from abc import abstractmethod
 from datetime import datetime
 
 from chat.domain.chat.chat_id import ChatId
-from chat.domain.member.events import (
-    MemberRoleChanged,
-    MemberStatusChanged,
+from chat.domain.member.exceptions import (
+    MutedMemberCantSendMessageError,
 )
-from chat.domain.member.roles import MemberRole
 from chat.domain.member.statuses import MemberStatus
 from chat.domain.message.message import Message
 from chat.domain.message.message_id import MessageId
@@ -15,7 +14,7 @@ from chat.domain.shared.unit_of_work import UnitOfWork
 from chat.domain.shared.user_id import UserId
 
 
-class Member(Entity[UserId]):
+class Member[MessageT: Message](Entity[UserId]):
     def __init__(
         self,
         entity_id: UserId,
@@ -23,61 +22,38 @@ class Member(Entity[UserId]):
         unit_of_work: UnitOfWork,
         *,
         chat_id: ChatId,
-        role: MemberRole = MemberRole.MEMBER,
-        status: MemberStatus = MemberStatus.ACTIVE,
+        status: MemberStatus,
         joined_at: datetime,
     ) -> None:
-        super().__init__(entity_id, event_adder, unit_of_work)
+        Entity.__init__(
+            self=self,
+            entity_id=entity_id,
+            event_adder=event_adder,
+            unit_of_work=unit_of_work,
+        )
 
         self._chat_id = chat_id
         self._joined_at = joined_at
-        self._role = role
         self._status = status
 
+    @abstractmethod
     def send_message(
-        self, message_id: MessageId, content: str, current_date: datetime
-    ) -> Message:
-        message = self._create_message(
-            message_id=message_id,
-            content=content,
-            current_date=current_date,
-        )
-        return message
+        self,
+        message_id: MessageId,
+        content: str,
+        current_date: datetime,
+    ) -> MessageT: ...
 
-    def _create_message(
-        self, message_id: MessageId, content: str, current_date: datetime
-    ) -> Message:
-        return Message(
-            entity_id=message_id,
-            event_adder=self._event_adder,
-            unit_of_work=self._unit_of_work,
-            owner_id=self._entity_id,
-            chat_id=self._chat_id,
-            content=content,
-            created_at=current_date,
-        )
+    @abstractmethod
+    def edit_status(
+        self, status: MemberStatus, current_date: datetime
+    ) -> None: ...
 
-    def change_role(self, role: MemberRole, current_date: datetime) -> None:
-        self._role = role
-        self.add_event(
-            MemberRoleChanged(
-                chat_id=self._chat_id,
-                user_id=self._entity_id,
-                role=role,
-                event_date=current_date,
+    def _ensure_can_send_message(self) -> None:
+        if self.status == MemberStatus.MUTED:
+            raise MutedMemberCantSendMessageError(
+                chat_id=self.chat_id, member_id=self.entity_id
             )
-        )
-
-    def change_status(self, status: MemberStatus, current_date: datetime) -> None:
-        self._status = status
-        self.add_event(
-            MemberStatusChanged(
-                chat_id=self._chat_id,
-                user_id=self._entity_id,
-                status=status,
-                event_date=current_date,
-            )
-        )
 
     @property
     def chat_id(self) -> ChatId:
@@ -86,10 +62,6 @@ class Member(Entity[UserId]):
     @property
     def joined_at(self) -> datetime:
         return self._joined_at
-
-    @property
-    def role(self) -> MemberRole:
-        return self._role
 
     @property
     def status(self) -> MemberStatus:

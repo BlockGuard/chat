@@ -1,26 +1,31 @@
-import secrets
 from datetime import datetime
+from secrets import randbelow
 
 from chat.domain.chat.base_chat import BaseChat
 from chat.domain.chat.chat_id import ChatId
 from chat.domain.chat.chat_types import ChatType
 from chat.domain.chat.events import (
+    PublicChatDeleted,
     PublicChatDescriptionEdited,
     PublicChatTitleEdited,
 )
-from chat.domain.member.events import MemberLeftChat
+from chat.domain.member.events import (
+    MemberJoinedPublicChat,
+    PublicChatMemberLeftChat,
+)
 from chat.domain.member.exceptions import MemberHavenotPermissionError
-from chat.domain.member.member import Member
+from chat.domain.member.member_collection import MemberCollection
+from chat.domain.member.public_chat_member import PublicChatMember
 from chat.domain.member.roles import MemberRole
 from chat.domain.member.statuses import MemberStatus
-from chat.domain.message.message import Message
 from chat.domain.message.message_id import MessageId
+from chat.domain.message.public_chat_message import PublicChatMessage
 from chat.domain.shared.events import DomainEventAdder
 from chat.domain.shared.unit_of_work import UnitOfWork
 from chat.domain.shared.user_id import UserId
 
 
-class PublicChat(BaseChat):
+class PublicChat(BaseChat[PublicChatMember]):
     def __init__(
         self,
         entity_id: ChatId,
@@ -28,13 +33,14 @@ class PublicChat(BaseChat):
         unit_of_work: UnitOfWork,
         *,
         created_at: datetime,
-        chat_type: ChatType = ChatType.PUBLIC,
-        members: set[Member] | None = None,
-        title: str | None = None,
-        description: str | None = None,
-        updated_at: datetime | None = None,
+        chat_type: ChatType,
+        title: str | None,
+        description: str | None,
+        updated_at: datetime | None,
+        members: MemberCollection[PublicChatMember],
     ) -> None:
-        super().__init__(
+        BaseChat.__init__(
+            self=self,
             entity_id=entity_id,
             event_adder=event_adder,
             unit_of_work=unit_of_work,
@@ -53,125 +59,154 @@ class PublicChat(BaseChat):
         current_date: datetime,
         editor_id: UserId,
     ) -> None:
-        editor = self._get_validated_member(editor_id)
-        self._ensure_member_have_permission(editor)
+        editor = self._members.get(
+            member_id=editor_id, chat_id=self.entity_id
+        )
+        self._ensure_permissioned(editor)
         self._description = description
         self._updated_at = current_date
-        self.add_event(
-            PublicChatDescriptionEdited(
-                chat_id=self.entity_id,
-                chat_type=self._chat_type,
-                description=self._description,
-                event_date=current_date,
-            )
+        event = PublicChatDescriptionEdited(
+            chat_id=self.entity_id,
+            description=description,
+            event_date=current_date,
         )
+        self.add_event(event)
         self.mark_dirty()
 
     def edit_title(
-        self, title: str | None, current_date: datetime, editor_id: UserId
+        self,
+        title: str | None,
+        current_date: datetime,
+        editor_id: UserId,
     ) -> None:
-        editor = self._get_validated_member(editor_id)
-        self._ensure_member_have_permission(editor)
+        editor = self._members.get(
+            member_id=editor_id, chat_id=self.entity_id
+        )
+        self._ensure_permissioned(editor)
         self._title = title
         self._updated_at = current_date
-        self.add_event(
-            PublicChatTitleEdited(
-                chat_id=self.entity_id,
-                chat_type=self._chat_type,
-                title=self._title,
-                event_date=current_date,
-            )
+        events = PublicChatTitleEdited(
+            chat_id=self.entity_id,
+            title=title,
+            event_date=current_date,
         )
+        self.add_event(events)
         self.mark_dirty()
 
-    def join_public_chat(
-        self, member_id: UserId, current_date: datetime, role: MemberRole
+    def join(
+        self,
+        member_id: UserId,
+        current_date: datetime,
     ) -> None:
-        self._join_chat(member_id, current_date, role)
+        member = PublicChatMember(
+            entity_id=member_id,
+            event_adder=self._event_adder,
+            unit_of_work=self._unit_of_work,
+            chat_id=self.entity_id,
+            status=MemberStatus.ACTIVE,
+            role=(
+                MemberRole.MEMBER
+                if len(self._members) >= 1
+                else MemberRole.OWNER
+            ),
+            joined_at=current_date,
+        )
+        self._members.add(member)
+        event = MemberJoinedPublicChat(
+            chat_id=self._entity_id,
+            user_id=member_id,
+            status=member.status,
+            role=member.role,
+            event_date=current_date,
+        )
+        member.add_event(event)
+        member.mark_new()
 
-    def leave_public_chat(self, member_id: UserId, current_date: datetime) -> None:
-        if len(self.members) == 1:
-            self._delete_chat(current_date)
+    def leave(
+        self, member_id: UserId, current_date: datetime
+    ) -> None:
+        member = self._members.get(
+            member_id=member_id, chat_id=self.entity_id
+        )
+        if len(self._members) == 1:
+            self._members.clear()
+            chat_event = PublicChatDeleted(
+                chat_id=self._entity_id, event_date=current_date
+            )
+            self.add_event(chat_event)
+            self.mark_deleted()
             return
 
-        member = self._get_validated_member(member_id)
-
         if member.role == MemberRole.OWNER:
-            self._transfer_ownership(current_date)
+            self._transfer_ownership(current_date=current_date)
 
-        self._members.remove(member)
-        member.mark_deleted()
-        member.add_event(
-            MemberLeftChat(
-                chat_id=self.entity_id,
-                user_id=member_id,
-                event_date=current_date,
-            )
+        member_event = PublicChatMemberLeftChat(
+            chat_id=self._entity_id,
+            user_id=member_id,
+            event_date=current_date,
         )
+        self._members.remove(member)
+        member.add_event(member_event)
+        member.mark_deleted()
 
     def kick_member(
         self,
-        kicked_by_id: UserId,
+        kicker_id: UserId,
         member_id: UserId,
         current_date: datetime,
     ) -> None:
-        kicked_by = self._get_validated_member(kicked_by_id)
-        member = self._get_validated_member(member_id)
-        self._ensure_member_have_permission(kicked_by)
+        member = self._members.get(
+            member_id=member_id, chat_id=self.entity_id
+        )
+        kicker = self._members.get(
+            member_id=kicker_id, chat_id=self.entity_id
+        )
+        self._ensure_permissioned(kicker)
+        event = PublicChatMemberLeftChat(
+            chat_id=self._entity_id,
+            user_id=member_id,
+            event_date=current_date,
+        )
         self._members.remove(member)
+        member.add_event(event)
         member.mark_deleted()
-        member.add_event(
-            MemberLeftChat(
-                chat_id=self.entity_id,
-                user_id=member_id,
-                event_date=current_date,
+
+    def _ensure_permissioned(self, member: PublicChatMember) -> None:
+        if member.role != MemberRole.OWNER:
+            raise MemberHavenotPermissionError(
+                chat_id=self._entity_id, member_id=member.entity_id
             )
+
+    def _transfer_ownership(self, current_date: datetime) -> None:
+        candidates = [
+            member
+            for member in self._members
+            if member.role == MemberRole.MEMBER
+        ]
+        new_owner = candidates[randbelow(len(candidates))]
+        new_owner.edit_role(
+            role=MemberRole.OWNER, current_date=current_date
         )
+        new_owner.mark_dirty()
 
-    def change_member_status(
-        self,
-        member_id: UserId,
-        status: MemberStatus,
-        changed_by_id: UserId,
-        current_date: datetime,
-    ) -> None:
-        changed_by = self._get_validated_member(changed_by_id)
-        self._ensure_member_have_permission(changed_by)
-        self._change_member_status(
-            member_id=member_id, status=status, current_date=current_date
-        )
-
-    def delete_public_chat(self, member_id: UserId, current_date: datetime) -> None:
-        member = self._get_validated_member(member_id)
-        self._ensure_member_have_permission(member)
-        self._delete_chat(current_date)
-
-    def send_message_to_public_chat(
+    def send_message(
         self,
         sender_id: UserId,
         message_id: MessageId,
         content: str,
         current_date: datetime,
-    ) -> Message:
-        return self._send_message(
-            sender_id=sender_id,
+    ) -> PublicChatMessage:
+        sender = self._members.get(
+            member_id=sender_id, chat_id=self._entity_id
+        )
+
+        message = sender.send_message(
             message_id=message_id,
             content=content,
             current_date=current_date,
         )
 
-    def _transfer_ownership(self, current_date: datetime) -> None:
-        members_list = list(self._members)
-        new_owner = members_list[secrets.randbelow(len(members_list))]
-        self._change_member_role(
-            member_id=new_owner.entity_id,
-            role=MemberRole.OWNER,
-            current_date=current_date,
-        )
-
-    def _ensure_member_have_permission(self, member: Member) -> None:
-        if member.role == MemberRole.MEMBER:
-            raise MemberHavenotPermissionError(self._entity_id, member.entity_id)
+        return message
 
     @property
     def description(self) -> str | None:

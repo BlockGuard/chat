@@ -5,6 +5,17 @@ from chat.domain.message.message import Message
 from chat.domain.message.message_id import MessageId
 
 
+class Result[MessageT: Message](ABC):
+    @abstractmethod
+    async def with_message_id(
+        self, message_id: MessageId
+    ) -> MessageT | None: ...
+    @abstractmethod
+    async def with_chat_id(
+        self, chat_id: ChatId
+    ) -> list[MessageT]: ...
+
+
 class MessageRepository(ABC):
     @abstractmethod
     def add(self, message: Message) -> None: ...
@@ -13,8 +24,6 @@ class MessageRepository(ABC):
     @abstractmethod
     def delete_many(self, messages: list[Message]) -> None: ...
     @abstractmethod
-    async def with_message_id(
-        self, message_id: MessageId
-    ) -> Message | None: ...
-    @abstractmethod
-    async def with_chat_id(self, chat_id: ChatId) -> list[Message]: ...
+    def select[MessageT: Message](
+        self, entity: type[MessageT]
+    ) -> Result[MessageT]: ...

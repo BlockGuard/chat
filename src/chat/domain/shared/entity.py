@@ -2,7 +2,10 @@ from collections.abc import Hashable
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from chat.domain.shared.events import DomainEvent, DomainEventAdder
+    from chat.domain.shared.events import (
+        DomainEvent,
+        DomainEventAdder,
+    )
     from chat.domain.shared.unit_of_work import UnitOfWork
 
 
