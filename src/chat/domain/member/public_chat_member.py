@@ -16,7 +16,7 @@ from chat.domain.shared.unit_of_work import UnitOfWork
 from chat.domain.shared.user_id import UserId
 
 
-class PublicChatMember(Member[PublicChatMessage]):
+class PublicChatMember(Member):
     def __init__(
         self,
         entity_id: UserId,

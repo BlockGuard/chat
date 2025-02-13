@@ -14,7 +14,7 @@ from chat.domain.shared.unit_of_work import UnitOfWork
 from chat.domain.shared.user_id import UserId
 
 
-class Member[MessageT: Message](Entity[UserId]):
+class Member(Entity[UserId]):
     def __init__(
         self,
         entity_id: UserId,
@@ -42,7 +42,7 @@ class Member[MessageT: Message](Entity[UserId]):
         message_id: MessageId,
         content: str,
         current_date: datetime,
-    ) -> MessageT: ...
+    ) -> Message: ...
 
     @abstractmethod
     def edit_status(

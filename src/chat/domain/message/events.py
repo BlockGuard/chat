@@ -1,18 +1,13 @@
 from dataclasses import dataclass
 
 from chat.domain.chat.chat_id import ChatId
-from chat.domain.message.message import Message
 from chat.domain.message.message_id import MessageId
-from chat.domain.message.private_chat_message import (
-    PrivateChatMessage,
-)
-from chat.domain.message.public_chat_message import PublicChatMessage
 from chat.domain.shared.events import DomainEvent
 from chat.domain.shared.user_id import UserId
 
 
 @dataclass(frozen=True)
-class MessageSent[MessageT: Message](DomainEvent[MessageT]):
+class MessageSent(DomainEvent):
     chat_id: ChatId
     message_id: MessageId
     sender_id: UserId
@@ -20,15 +15,15 @@ class MessageSent[MessageT: Message](DomainEvent[MessageT]):
 
 
 @dataclass(frozen=True)
-class PrivateChatMessageSent(MessageSent[PrivateChatMessage]): ...
+class PrivateChatMessageSent(MessageSent): ...
 
 
 @dataclass(frozen=True)
-class PublicChatMessageSent(MessageSent[PublicChatMessage]): ...
+class PublicChatMessageSent(MessageSent): ...
 
 
 @dataclass(frozen=True)
-class MessageEdited[MessageT: Message](DomainEvent[MessageT]):
+class MessageEdited(DomainEvent):
     chat_id: ChatId
     message_id: MessageId
     sender_id: UserId
@@ -36,25 +31,23 @@ class MessageEdited[MessageT: Message](DomainEvent[MessageT]):
 
 
 @dataclass(frozen=True)
-class PrivateChatMessageEdited(MessageEdited[PrivateChatMessage]): ...
+class PrivateChatMessageEdited(MessageEdited): ...
 
 
 @dataclass(frozen=True)
-class PublicChatMessageEdited(MessageEdited[PublicChatMessage]): ...
+class PublicChatMessageEdited(MessageEdited): ...
 
 
 @dataclass(frozen=True)
-class MessageDeleted[MessageT: Message](DomainEvent[MessageT]):
+class MessageDeleted(DomainEvent):
     chat_id: ChatId
     message_id: MessageId
     sender_id: UserId
 
 
 @dataclass(frozen=True)
-class PrivateChatMessageDeleted(
-    MessageDeleted[PrivateChatMessage]
-): ...
+class PrivateChatMessageDeleted(MessageDeleted): ...
 
 
 @dataclass(frozen=True)
-class PublicChatMessageDeleted(MessageDeleted[PublicChatMessage]): ...
+class PublicChatMessageDeleted(MessageDeleted): ...
