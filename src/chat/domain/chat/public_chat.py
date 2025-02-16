@@ -208,6 +208,19 @@ class PublicChat(BaseChat[PublicChatMember]):
 
         return message
 
+    def delete_chat(
+        self, current_date: datetime, deleter_id: UserId
+    ) -> None:
+        deleter = self._members.get(
+            member_id=deleter_id, chat_id=self.entity_id
+        )
+        self._ensure_permissioned(deleter)
+        self._members.clear()
+        event = PublicChatDeleted(
+            chat_id=self.entity_id, event_date=current_date
+        )
+        self.add_event(event)
+
     @property
     def description(self) -> str | None:
         return self._description

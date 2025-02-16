@@ -37,9 +37,9 @@ class PublicChatMessage(Message):
     def change_content(
         self, content: str, current_date: datetime
     ) -> None:
-        self._change_content(
-            content=content, current_date=current_date
-        )
+        self._content = content
+        self._updated_at = current_date
+
         event = PublicChatMessageEdited(
             chat_id=self._chat_id,
             message_id=self._entity_id,

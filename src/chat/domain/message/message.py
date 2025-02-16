@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from datetime import datetime
 
 from chat.domain.chat.chat_id import ChatId
@@ -34,11 +35,10 @@ class Message(Entity[MessageId]):
         self._created_at = created_at
         self._updated_at = updated_at
 
-    def _change_content(
+    @abstractmethod
+    def change_content(
         self, content: str, current_date: datetime
-    ) -> None:
-        self._content = content
-        self._updated_at = current_date
+    ) -> None: ...
 
     @property
     def owner_id(self) -> UserId:

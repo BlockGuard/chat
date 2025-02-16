@@ -3,6 +3,7 @@ from datetime import datetime
 from chat.domain.chat.base_chat import BaseChat
 from chat.domain.chat.chat_id import ChatId
 from chat.domain.chat.chat_types import ChatType
+from chat.domain.chat.events import PrivateChatDeleted
 from chat.domain.chat.exceptions import (
     OnlyTwoMembersAllowedForPrivateChatError,
 )
@@ -82,6 +83,23 @@ class PrivateChat(BaseChat[PrivateChatMember]):
         )
 
         return message
+
+    def delete_chat(
+        self,
+        current_date: datetime,
+        deleter_id: UserId,
+    ) -> None:
+        self._members.get(
+            member_id=deleter_id,
+            chat_id=self._entity_id,
+        )
+        self._members.clear()
+        self.add_event(
+            event=PrivateChatDeleted(
+                chat_id=self._entity_id,
+                event_date=current_date,
+            )
+        )
 
     def _enure_two_members(self) -> None:
         if len(self._members) == 2:

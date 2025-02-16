@@ -1,6 +1,5 @@
 from abc import abstractmethod
 from datetime import datetime
-from typing import TypeVar
 
 from chat.domain.chat.chat_id import ChatId
 from chat.domain.chat.chat_types import ChatType
@@ -13,8 +12,6 @@ from chat.domain.shared.entity import Entity
 from chat.domain.shared.events import DomainEventAdder
 from chat.domain.shared.unit_of_work import UnitOfWork
 from chat.domain.shared.user_id import UserId
-
-MemberT = TypeVar("MemberT", bound=Member)
 
 
 class BaseChat[MemberT: Member](Entity[ChatId]):
@@ -54,6 +51,13 @@ class BaseChat[MemberT: Member](Entity[ChatId]):
         content: str,
         current_date: datetime,
     ) -> Message: ...
+
+    @abstractmethod
+    def delete_chat(
+        self,
+        current_date: datetime,
+        deleter_id: UserId,
+    ) -> None: ...
 
     def edit_member_status(
         self,
