@@ -2,16 +2,14 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from chat.domain.shared.entity import Entity
 from chat.domain.shared.event_id import EventId
 from chat.domain.shared.markers import Notification
 
 
 @dataclass(frozen=True, kw_only=True)
-class DomainEvent[EntityT: Entity](Notification):
+class DomainEvent(Notification):
     event_date: datetime
     event_id: EventId | None = field(default=None, init=False)
-    entity_type: type[EntityT] = field(init=False)
 
     @property
     def event_type(self) -> str:
