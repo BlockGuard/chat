@@ -26,3 +26,9 @@ class ReactionsCollection(set[Reaction]):
                 return reaction
 
         raise ReactionNotSettedError
+
+    def clear(self) -> None:
+        for reaction in self:
+            reaction.mark_deleted()
+
+        self.clear()

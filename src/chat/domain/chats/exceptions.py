@@ -4,5 +4,5 @@ from chat.domain.shared.exceptions import DomainError
 
 
 @dataclass(frozen=True)
-class UserNotOwnerOfMessageError(DomainError):
-    message = "User not owner of message"
+class LimitOfMembersReachedError(DomainError):
+    message: str = "Limit of members reached"

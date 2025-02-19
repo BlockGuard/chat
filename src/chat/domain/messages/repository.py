@@ -1,15 +1,7 @@
 from abc import ABC, abstractmethod
-from collections.abc import Iterable
 
 from chat.domain.messages.message import Message
-from chat.domain.shared.specification import Specification
-
-
-class Result[T: Message](ABC):
-    @abstractmethod
-    def first(self) -> T: ...
-    @abstractmethod
-    def all(self) -> Iterable[T]: ...
+from chat.domain.shared.specification import Result, Specification
 
 
 class MessageRepository(ABC):
@@ -18,6 +10,6 @@ class MessageRepository(ABC):
     @abstractmethod
     def delete(self, message: Message) -> None: ...
     @abstractmethod
-    def load[T: Message](
-        self, specification: Specification[T]
-    ) -> Result[T]: ...
+    async def load(
+        self, specification: Specification[Message]
+    ) -> Result[Message]: ...

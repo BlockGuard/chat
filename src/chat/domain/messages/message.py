@@ -87,21 +87,6 @@ class Message(Entity[MessageId]):
         reaction.add_event(event)
         reaction.mark_deleted()
 
-    def edit_reaction(
-        self,
-        reaction_id: ReactionId,
-        user_id: UserId,
-        new_reaction: str,
-        current_date: datetime,
-    ) -> None:
-        reaction = self._reactions.get(reaction_id)
-        reaction.edit_reaction(
-            new_reaction=new_reaction,
-            editor_id=user_id,
-            current_date=current_date,
-        )
-        reaction.mark_dirty()
-
     def edit_message(
         self, user_id: UserId, new_text: str, current_date: datetime
     ) -> None:

@@ -7,14 +7,6 @@ from chat.domain.shared.user_id import UserId
 
 
 @dataclass(frozen=True)
-class ReactionEdited(DomainEvent):
-    message_id: MessageId
-    user_id: UserId
-    reaction_id: ReactionId
-    new_reaction: str
-
-
-@dataclass(frozen=True)
 class ReactionAdded(DomainEvent):
     message_id: MessageId
     user_id: UserId

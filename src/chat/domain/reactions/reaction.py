@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from chat.domain.messages.message_id import MessageId
-from chat.domain.reactions.events import ReactionEdited
 from chat.domain.reactions.exceptions import (
     OnlyReactionOwnerCanEditReactionError,
 )
@@ -30,23 +29,6 @@ class Reaction(Entity[ReactionId]):
         self._user_id = user_id
         self._reaction = reaction
         self._set_at = set_at
-
-    def edit_reaction(
-        self,
-        new_reaction: str,
-        editor_id: UserId,
-        current_date: datetime,
-    ) -> None:
-        self._ensure_owner(user_id=editor_id)
-        self._reaction = new_reaction
-        event = ReactionEdited(
-            message_id=self._message_id,
-            user_id=self._user_id,
-            reaction_id=self._entity_id,
-            new_reaction=new_reaction,
-            event_date=current_date,
-        )
-        self.add_event(event)
 
     def _ensure_owner(self, user_id: UserId) -> None:
         if user_id != self._user_id:

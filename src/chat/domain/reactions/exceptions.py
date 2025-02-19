@@ -1,19 +1,18 @@
+from dataclasses import dataclass
+
 from chat.domain.shared.exceptions import DomainError
 
 
+@dataclass(frozen=True)
 class OnlyReactionOwnerCanEditReactionError(DomainError):
-    def __init__(self) -> None:
-        DomainError.__init__(
-            self,
-            message="Only the reaction owner can edit the reaction",
-        )
+    message = "Only the reaction owner can edit the reaction"
 
 
+@dataclass(frozen=True)
 class ReactionNotSettedError(DomainError):
-    def __init__(self) -> None:
-        DomainError.__init__(self, message="Reaction not setted")
+    message = "Reaction not setted"
 
 
+@dataclass(frozen=True)
 class ReactionAlreadySettedError(DomainError):
-    def __init__(self) -> None:
-        DomainError.__init__(self, message="Reaction already setted")
+    message = "Reaction already setted"
