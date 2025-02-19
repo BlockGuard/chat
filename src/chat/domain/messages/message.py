@@ -2,7 +2,6 @@ from datetime import datetime
 
 from chat.domain.chats.chat_id import ChatId
 from chat.domain.messages.events import MessageEdited
-from chat.domain.messages.exceptions import UserNotOwnerOfMessageError
 from chat.domain.messages.message_id import MessageId
 from chat.domain.reactions.events import (
     ReactionAdded,
@@ -77,6 +76,7 @@ class Message(Entity[MessageId]):
         current_date: datetime,
     ) -> None:
         reaction = self._reactions.get(reaction_id)
+        reaction.ensure_owner(user_id)
         self._reactions.remove(reaction)
         event = ReactionRemoved(
             message_id=self._entity_id,
@@ -88,21 +88,22 @@ class Message(Entity[MessageId]):
         reaction.mark_deleted()
 
     def edit_message(
-        self, user_id: UserId, new_text: str, current_date: datetime
+        self, new_text: str, current_date: datetime
     ) -> None:
-        if user_id != self._sender_id:
-            raise UserNotOwnerOfMessageError
         self._text = new_text
         self._edited_at = current_date
         event = MessageEdited(
             message_id=self._entity_id,
-            sender_id=user_id,
+            sender_id=self._sender_id,
             new_content=new_text,
             chat_id=self._chat_id,
             event_date=current_date,
         )
         self.add_event(event)
         self.mark_dirty()
+
+    def remove_reactions(self) -> None:
+        self._reactions.clear()
 
     @property
     def sender_id(self) -> UserId:

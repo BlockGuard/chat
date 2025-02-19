@@ -63,7 +63,6 @@ class ChatRoom(Entity[ChatId]):
             content=content,
             current_date=current_date,
         )
-        message.mark_new()
 
         return message
 
@@ -86,6 +85,9 @@ class ChatRoom(Entity[ChatId]):
 
     def ensure_member_in_chat(self, user_id: UserId) -> None:
         self._members.get(user_id)
+
+    def remove_members(self) -> None:
+        self._members.clear()
 
     @property
     def members(self) -> set[ChatMember]:
