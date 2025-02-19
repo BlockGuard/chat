@@ -2,7 +2,7 @@ from datetime import datetime
 
 from chat.domain.messages.message_id import MessageId
 from chat.domain.reactions.exceptions import (
-    OnlyReactionOwnerCanEditReactionError,
+    OnlyReactionOwnerCanOperateWithReactionError,
 )
 from chat.domain.reactions.reaction_id import ReactionId
 from chat.domain.shared.entity import Entity
@@ -30,9 +30,9 @@ class Reaction(Entity[ReactionId]):
         self._reaction = reaction
         self._set_at = set_at
 
-    def _ensure_owner(self, user_id: UserId) -> None:
+    def ensure_owner(self, user_id: UserId) -> None:
         if user_id != self._user_id:
-            raise OnlyReactionOwnerCanEditReactionError
+            raise OnlyReactionOwnerCanOperateWithReactionError
 
     @property
     def message_id(self) -> MessageId:

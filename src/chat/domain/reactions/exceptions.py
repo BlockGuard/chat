@@ -4,7 +4,7 @@ from chat.domain.shared.exceptions import DomainError
 
 
 @dataclass(frozen=True)
-class OnlyReactionOwnerCanEditReactionError(DomainError):
+class OnlyReactionOwnerCanOperateWithReactionError(DomainError):
     message = "Only the reaction owner can edit the reaction"
 
 
