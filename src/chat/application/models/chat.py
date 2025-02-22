@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -14,12 +15,10 @@ from chat.domain.shared.user_id import UserId
 class ChatReadModel:
     chat_id: ChatId
     created_at: datetime
-    members: set[ChatMemberReadModel]
+    members: Iterable[ChatMemberReadModel]
 
     def ensure_member(self, member_id: UserId) -> None:
-        if not any(
-            member.user_id == member_id for member in self.members
-        ):
+        if not any(member.user_id == member_id for member in self.members):
             raise ApplicationError(
                 error_type=ErrorType.NOT_FOUND,
                 message="You are not a member of this chat",

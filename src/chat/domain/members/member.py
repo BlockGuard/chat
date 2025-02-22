@@ -27,11 +27,13 @@ class ChatMember(Entity[UserId]):
         *,
         chat_id: ChatId,
         status: Status = Status.ACTIVE,
+        joined_at: datetime,
     ) -> None:
         Entity.__init__(self, entity_id, event_adder, unit_of_work)
 
         self._chat_id = chat_id
         self._status = status
+        self._joined_at = joined_at
 
     def send_message(
         self,
@@ -62,9 +64,7 @@ class ChatMember(Entity[UserId]):
 
         return message
 
-    def edit_status(
-        self, status: Status, current_date: datetime
-    ) -> None:
+    def edit_status(self, status: Status, current_date: datetime) -> None:
         self._status = status
         event = MemberStatusChanged(
             chat_id=self._chat_id,
@@ -85,3 +85,7 @@ class ChatMember(Entity[UserId]):
     @property
     def status(self) -> Status:
         return self._status
+
+    @property
+    def joined_at(self) -> datetime:
+        return self._joined_at

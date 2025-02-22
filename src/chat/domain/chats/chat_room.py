@@ -31,15 +31,14 @@ class ChatRoom(Entity[ChatId]):
         self._members = members
         self._created_at = created_at
 
-    def join_chat(
-        self, member_id: UserId, current_date: datetime
-    ) -> None:
+    def join_chat(self, member_id: UserId, current_date: datetime) -> None:
         self._ensure_limit_not_reached()
         member = ChatMember(
             entity_id=member_id,
             unit_of_work=self._unit_of_work,
             event_adder=self._event_adder,
             chat_id=self._entity_id,
+            joined_at=current_date,
         )
         event = MemberJoinedChat(
             user_id=member_id,
