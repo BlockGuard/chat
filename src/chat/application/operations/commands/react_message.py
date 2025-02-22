@@ -9,14 +9,9 @@ from chat.application.common.markers import Command
 from chat.application.ports.context import Context
 from chat.application.ports.id_generator import IdGenerator
 from chat.application.ports.time_provider import TimeProvider
-from chat.domain.messages.message import Message
 from chat.domain.messages.message_id import MessageId
 from chat.domain.messages.repository import MessageRepository
-from chat.domain.messages.specification import (
-    MessageIdentifiedSpecification,
-)
 from chat.domain.reactions.reaction_id import ReactionId
-from chat.domain.shared.specification import Specification
 
 
 @dataclass(frozen=True)
@@ -39,12 +34,11 @@ class ReactMessageHandler(RequestHandler[ReactMessage, ReactionId]):
         self._context = context
 
     async def handle(self, request: ReactMessage) -> ReactionId:
-        specification = MessageIdentifiedSpecification(
-            request.message_id
-        )
         current_user_id = await self._context.user_id()
 
-        message = await self._select(specification)
+        message = await self._message_repository.with_message_id(
+            message_id=request.message_id
+        )
 
         if not message:
             raise ApplicationError(
@@ -60,9 +54,3 @@ class ReactMessageHandler(RequestHandler[ReactMessage, ReactionId]):
         )
 
         return reaction.entity_id
-
-    async def _select(
-        self, specification: Specification[Message]
-    ) -> Message | None:
-        result = await self._message_repository.load(specification)
-        return result.first()

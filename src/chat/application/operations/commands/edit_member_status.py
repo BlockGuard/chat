@@ -9,13 +9,8 @@ from chat.application.common.markers import Command
 from chat.application.ports.context import Context
 from chat.application.ports.time_provider import TimeProvider
 from chat.domain.chats.chat_id import ChatId
-from chat.domain.chats.chat_room import ChatRoom
 from chat.domain.chats.repository import ChatRepository
-from chat.domain.chats.specification import (
-    ChatIdentifiedSpecification,
-)
 from chat.domain.members.statuses import Status
-from chat.domain.shared.specification import Specification
 from chat.domain.shared.user_id import UserId
 
 
@@ -38,10 +33,11 @@ class EditMemberStatusHandler(RequestHandler[EditMemberStatus, None]):
         self._context = context
 
     async def handle(self, request: EditMemberStatus) -> None:
-        specification = ChatIdentifiedSpecification(request.chat_id)
         current_user_id = await self._context.user_id()
 
-        chat = await self._select(specification)
+        chat = await self._chat_repository.with_chat_id(
+            chat_id=request.chat_id
+        )
 
         if not chat:
             raise ApplicationError(
@@ -55,9 +51,3 @@ class EditMemberStatusHandler(RequestHandler[EditMemberStatus, None]):
             status=request.status,
             current_date=self._time_provider.provide_current(),
         )
-
-    async def _select(
-        self, specification: Specification[ChatRoom]
-    ) -> ChatRoom | None:
-        result = await self._chat_repository.load(specification)
-        return result.first()

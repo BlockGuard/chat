@@ -9,13 +9,8 @@ from chat.application.common.markers import Command
 from chat.application.ports.context import Context
 from chat.application.ports.time_provider import TimeProvider
 from chat.domain.messages.events import MessageDeleted
-from chat.domain.messages.message import Message
 from chat.domain.messages.message_id import MessageId
 from chat.domain.messages.repository import MessageRepository
-from chat.domain.messages.specification import (
-    MessageIdentifiedSpecification,
-)
-from chat.domain.shared.specification import Specification
 
 
 @dataclass(frozen=True)
@@ -35,12 +30,11 @@ class DeleteMessageHandler(RequestHandler[DeleteMessage, None]):
         self._context = context
 
     async def handle(self, request: DeleteMessage) -> None:
-        specification = MessageIdentifiedSpecification(
-            request.message_id
-        )
         current_user_id = await self._context.user_id()
 
-        message = await self._select(specification)
+        message = await self._message_repository.with_message_id(
+            request.message_id
+        )
 
         if not message:
             raise ApplicationError(
@@ -60,12 +54,7 @@ class DeleteMessageHandler(RequestHandler[DeleteMessage, None]):
             message_id=message.entity_id,
             event_date=self._time_provider.provide_current(),
         )
+
         message.remove_reactions()
         message.add_event(event)
         self._message_repository.delete(message)
-
-    async def _select(
-        self, specification: Specification[Message]
-    ) -> Message | None:
-        result = await self._message_repository.load(specification)
-        return result.first()
