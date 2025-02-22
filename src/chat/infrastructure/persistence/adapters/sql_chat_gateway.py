@@ -18,8 +18,12 @@ from chat.infrastructure.persistence.sql_tables import (
 class SqlChatGateway(ChatGateway):
     def __init__(self, connection: AsyncConnection) -> None:
         self._connection = connection
+        self._identity_map: dict[ChatId, ChatReadModel] = {}
 
     async def with_chat_id(self, chat_id: ChatId) -> ChatReadModel | None:
+        if chat_id in self._identity_map:
+            return self._identity_map[chat_id]
+
         statement = (
             select(
                 CHATS_TABLE.c.chat_id.label("chat_id"),
@@ -46,41 +50,52 @@ class SqlChatGateway(ChatGateway):
                 CHAT_MEMBERS_TABLE.c.joined_at.label("joined_at"),
                 CHAT_MEMBERS_TABLE.c.status.label("status"),
             )
-            .join(CHAT_MEMBERS_TABLE, isouter=True)
+            .join(
+                CHAT_MEMBERS_TABLE,
+                isouter=True,
+                onclause=(
+                    CHAT_MEMBERS_TABLE.c.chat_id == CHATS_TABLE.c.chat_id
+                ),
+            )
             .where(CHAT_MEMBERS_TABLE.c.user_id == user_id)
             .limit(pagination.limit)
             .offset(pagination.offset)
         )
         cursor_result = await self._connection.execute(statement)
 
-        return self._load_many(cursor_result)
+        chats = self._load_many(cursor_result)
+
+        for chat in chats:
+            self._identity_map[chat.chat_id] = chat
+
+        return chats
 
     def _load_many(
         self, cursor_result: CursorResult
     ) -> Iterable[ChatReadModel]:
         rows = cursor_result.all()
 
-        unique_chat_ids = {row.chat_id for row in rows}
+        chats_map: dict[ChatId, ChatReadModel] = {}
 
-        return [
-            ChatReadModel(
-                chat_id=chat_id,
-                created_at=next(
-                    row.created_at for row in rows if row.chat_id == chat_id
-                ),
-                members=[
+        for row in rows:
+            if row.chat_id not in chats_map:
+                chats_map[row.chat_id] = ChatReadModel(
+                    chat_id=row.chat_id,
+                    created_at=row.created_at,
+                    members=set(),
+                )
+
+            if row.user_id:
+                chats_map[row.chat_id].members.add(
                     ChatMemberReadModel(
                         chat_id=row.chat_id,
                         user_id=row.user_id,
                         joined_at=row.joined_at,
                         status=row.status,
                     )
-                    for row in rows
-                    if row.chat_id == chat_id and row.user_id is not None
-                ],
-            )
-            for chat_id in unique_chat_ids
-        ]
+                )
+
+        return list(chats_map.values())
 
     def _load(self, cursor_result: CursorResult) -> ChatReadModel | None:
         chat_row = cursor_result.one_or_none()

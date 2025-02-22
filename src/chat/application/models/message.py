@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -16,4 +15,4 @@ class MessageReadModel:
     content: str
     sent_at: datetime
     edited_at: datetime | None
-    reactions: Iterable[ReactionReadModel]
+    reactions: set[ReactionReadModel]

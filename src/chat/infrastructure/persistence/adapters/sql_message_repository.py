@@ -29,6 +29,9 @@ class SqlMessageRepository(MessageRepository):
         self._identity_map: dict[MessageId, Message] = {}
 
     async def with_message_id(self, message_id: MessageId) -> Message | None:
+        if message_id in self._identity_map:
+            return self._identity_map[message_id]
+
         statement = (
             select(
                 MESSAGES_TABLE.c.message_id.label("message_id"),
@@ -45,6 +48,9 @@ class SqlMessageRepository(MessageRepository):
             .join(
                 REACTIONS_TABLE,
                 isouter=True,
+                onclause=(
+                    REACTIONS_TABLE.c.message_id == MESSAGES_TABLE.c.message_id
+                ),
             )
             .where(MESSAGES_TABLE.c.message_id == message_id)
         )

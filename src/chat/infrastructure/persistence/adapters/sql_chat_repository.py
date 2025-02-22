@@ -46,7 +46,13 @@ class SqlChatRepository(ChatRepository):
                 CHAT_MEMBERS_TABLE.c.joined_at.label("joined_at"),
                 CHAT_MEMBERS_TABLE.c.status.label("status"),
             )
-            .join(CHAT_MEMBERS_TABLE, isouter=True)
+            .join(
+                CHAT_MEMBERS_TABLE,
+                isouter=True,
+                onclause=(
+                    CHAT_MEMBERS_TABLE.c.chat_id == CHATS_TABLE.c.chat_id
+                ),
+            )
             .where(CHATS_TABLE.c.chat_id == chat_id)
         )
         cursor_result = await self._connection.execute(statement)
