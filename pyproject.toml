@@ -22,5 +22,6 @@ dependencies = [
     "bazario[dishka]>=0.4.1",
     "faststream[aio-pika]>=0.5.34",
     "mypy>=1.14.1",
+    "sqlalchemy>=2.0.38",
     "uuid7>=0.1.0",
 ]
