@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Final
 
 from chat.domain.chats.chat_id import ChatId
 from chat.domain.chats.exceptions import LimitOfMembersReachedError
@@ -15,7 +16,7 @@ from chat.domain.shared.user_id import UserId
 
 
 class ChatRoom(Entity[ChatId]):
-    MEMBERS_LIMIT = 2
+    _MEMBERS_LIMIT: Final[int] = 2
 
     def __init__(
         self,
@@ -79,7 +80,7 @@ class ChatRoom(Entity[ChatId]):
         member.mark_dirty()
 
     def _ensure_limit_not_reached(self) -> None:
-        if self._members.count() == self.MEMBERS_LIMIT:
+        if self._members.count() == self._MEMBERS_LIMIT:
             raise LimitOfMembersReachedError
 
     def ensure_member_in_chat(self, user_id: UserId) -> None:

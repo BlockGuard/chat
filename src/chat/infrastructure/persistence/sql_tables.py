@@ -74,3 +74,11 @@ REACTIONS_TABLE = Table(
     Column("content", Text, nullable=False),
     Column("set_at", DateTime(timezone=True), nullable=False),
 )
+
+OUTBOX_TABLE = Table(
+    "outbox",
+    METADATA,
+    Column("message_id", UUID, primary_key=True),
+    Column("data", Text, nullable=False),
+    Column("event_type", Text, nullable=False, default=False),
+)
